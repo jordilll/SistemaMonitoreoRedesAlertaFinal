@@ -1,0 +1,328 @@
+/* =========================================================
+   Sistema Monitoreo Redes – site.css
+   ========================================================= */
+
+:root {
+  --sidebar-width: 250px;
+  --sidebar-bg: #0f172a;
+  --sidebar-text: #cbd5e1;
+  --sidebar-active: #3b82f6;
+  --navbar-height: 56px;
+  --primary: #3b82f6;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #ef4444;
+  --info: #06b6d4;
+  --purple: #7c3aed;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  font-family: 'Segoe UI', system-ui, sans-serif;
+  background: #f1f5f9;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* ---- SIDEBAR ---- */
+.sidebar {
+  width: var(--sidebar-width);
+  min-height: 100vh;
+  background: var(--sidebar-bg);
+  color: var(--sidebar-text);
+  transition: width .25s ease;
+  z-index: 100;
+  flex-shrink: 0;
+}
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+  padding: 1.25rem 1rem;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+  letter-spacing: .02em;
+}
+
+.sidebar .nav-link {
+  color: var(--sidebar-text);
+  border-radius: 8px;
+  padding: .6rem .85rem;
+  margin: 2px 0;
+  font-size: .9rem;
+  transition: background .2s, color .2s;
+}
+
+.sidebar .nav-link:hover {
+  background: rgba(255,255,255,.07);
+  color: #fff;
+}
+
+.sidebar .nav-link.active {
+  background: var(--sidebar-active);
+  color: #fff;
+  font-weight: 600;
+}
+
+.sidebar-footer { border-top: 1px solid rgba(255,255,255,.08); }
+
+/* ---- NAVBAR ---- */
+.top-navbar {
+  height: var(--navbar-height);
+  background: #fff;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+  position: sticky;
+  top: 0;
+  z-index: 99;
+}
+
+/* ---- MAIN ---- */
+.main-content { min-height: calc(100vh - var(--navbar-height) - 40px); }
+
+/* ---- PAGE HEADER ---- */
+.page-title {
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: #1e293b;
+  margin: 0;
+}
+
+/* ---- KPI CARDS ---- */
+.kpi-card {
+  border-radius: 14px;
+  padding: 1.25rem 1rem;
+  color: #fff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  transition: transform .2s, box-shadow .2s;
+  box-shadow: 0 4px 15px rgba(0,0,0,.1);
+}
+
+.kpi-card:hover { transform: translateY(-3px); box-shadow: 0 8px 25px rgba(0,0,0,.15); }
+
+.kpi-icon { font-size: 1.8rem; opacity: .85; margin-bottom: .4rem; }
+.kpi-value { font-size: 2rem; font-weight: 800; line-height: 1; }
+.kpi-label { font-size: .78rem; opacity: .85; margin-top: .3rem; text-transform: uppercase; letter-spacing: .05em; }
+
+.kpi-primary { background: linear-gradient(135deg, #3b82f6, #1d4ed8); }
+.kpi-success { background: linear-gradient(135deg, #10b981, #059669); }
+.kpi-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.kpi-danger  { background: linear-gradient(135deg, #ef4444, #b91c1c); }
+.kpi-info    { background: linear-gradient(135deg, #06b6d4, #0284c7); }
+.kpi-purple  { background: linear-gradient(135deg, #8b5cf6, #6d28d9); }
+
+/* ---- METRIC CARDS ---- */
+.metric-card {
+  background: #fff;
+  border-radius: 12px;
+  padding: 1rem 1.2rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+  height: 100%;
+}
+
+.metric-label { font-size: .78rem; color: #64748b; text-transform: uppercase; letter-spacing: .05em; }
+.metric-value { font-size: 1.6rem; font-weight: 800; color: #1e293b; margin: .2rem 0; }
+.metric-unit  { font-size: .85rem; font-weight: 400; color: #94a3b8; margin-left: 2px; }
+
+/* ---- CHART CARDS ---- */
+.chart-card {
+  background: #fff;
+  border-radius: 14px;
+  padding: 1.25rem;
+  box-shadow: 0 2px 10px rgba(0,0,0,.06);
+  height: 100%;
+}
+
+.chart-title {
+  font-size: .85rem;
+  font-weight: 700;
+  color: #475569;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-bottom: 1rem;
+}
+
+/* ---- TABLES ---- */
+.table th { font-size: .8rem; text-transform: uppercase; letter-spacing: .04em; }
+.table td { vertical-align: middle; }
+
+/* ---- LOGIN ---- */
+.login-body {
+  background: linear-gradient(135deg, #0f172a 0%, #1e3a5f 100%);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.login-wrapper {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+.login-card {
+  background: #fff;
+  border-radius: 20px;
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: 0 20px 60px rgba(0,0,0,.35);
+  animation: fadeInUp .4s ease;
+}
+
+.login-logo {
+  font-size: 3rem;
+  color: var(--primary);
+  text-align: center;
+  margin-bottom: .75rem;
+}
+
+.login-title {
+  text-align: center;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: .25rem;
+}
+
+.login-subtitle {
+  text-align: center;
+  color: #64748b;
+  font-size: .9rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ---- CHATBOT ---- */
+.chatbot-card { border-radius: 16px; overflow: hidden; }
+
+.chatbot-header {
+  background: linear-gradient(135deg, #0f172a, #1e3a5f);
+  color: #fff;
+  padding: 1rem 1.25rem;
+}
+
+.chatbot-avatar {
+  width: 40px; height: 40px;
+  background: var(--primary);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  color: #fff;
+}
+
+.chat-messages {
+  height: 420px;
+  overflow-y: auto;
+  padding: 1.25rem;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  gap: .75rem;
+}
+
+.chat-msg { display: flex; flex-direction: column; max-width: 80%; }
+.chat-msg.user { align-self: flex-end; align-items: flex-end; }
+.chat-msg.assistant { align-self: flex-start; align-items: flex-start; }
+
+.chat-bubble {
+  padding: .75rem 1rem;
+  border-radius: 16px;
+  font-size: .9rem;
+  line-height: 1.5;
+  box-shadow: 0 1px 4px rgba(0,0,0,.08);
+}
+
+.chat-msg.user .chat-bubble { background: var(--primary); color: #fff; border-bottom-right-radius: 4px; }
+.chat-msg.assistant .chat-bubble { background: #fff; color: #1e293b; border-bottom-left-radius: 4px; }
+
+.chat-time { font-size: .7rem; color: #94a3b8; margin-top: .25rem; }
+
+.chat-input-area {
+  padding: 1rem;
+  border-top: 1px solid #e2e8f0;
+  background: #fff;
+}
+
+/* Typing indicator */
+.typing-indicator { display: flex; gap: 4px; align-items: center; padding: .5rem .75rem; }
+.typing-indicator span {
+  width: 8px; height: 8px;
+  background: #94a3b8;
+  border-radius: 50%;
+  animation: bounce 1.2s infinite;
+}
+.typing-indicator span:nth-child(2) { animation-delay: .2s; }
+.typing-indicator span:nth-child(3) { animation-delay: .4s; }
+
+@keyframes bounce {
+  0%, 80%, 100% { transform: scale(0); }
+  40% { transform: scale(1); }
+}
+
+/* ---- ANIMATIONS ---- */
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.card { animation: fadeInUp .3s ease; }
+
+/* ---- SCROLLBAR ---- */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #f1f5f9; }
+::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+
+/* ---- RESPONSIVE ---- */
+@media (max-width: 768px) {
+  .sidebar { width: 0; overflow: hidden; }
+  .sidebar.show { width: var(--sidebar-width); }
+  .kpi-value { font-size: 1.5rem; }
+}
+
+/* ---- CHIP BUTTONS ---- */
+.chip-btn { font-size: .75rem; white-space: nowrap; }
+
+/* ── MÓDULO ALERTAS ──────────────────────────────────────────────── */
+.bell-btn {
+  position: relative;
+  padding: 4px 6px;
+  border-radius: 8px;
+  transition: background .2s;
+}
+.bell-btn:hover { background: #f1f5f9; }
+
+.sidebar-badge {
+  font-size: .65rem !important;
+  padding: .2em .45em;
+  border-radius: 10px;
+}
+
+#tablaAlertas tbody tr { animation: fadeInUp .25s ease; }
+
+.table-danger.bg-opacity-10  { background-color: rgba(239,68,68,.06) !important; }
+.table-warning.bg-opacity-10 { background-color: rgba(245,158,11,.06) !important; }
+
+.btn-atender:hover { transform: scale(1.1); }
+.btn-atender { transition: transform .15s; }
+
+/* ── API badge en sidebar ─────────────────────────────────────────── */
+.api-badge {
+  font-size: .6rem;
+  background: #7c3aed;
+  color: #fff;
+  padding: .15em .4em;
+  border-radius: 4px;
+  letter-spacing: .03em;
+}

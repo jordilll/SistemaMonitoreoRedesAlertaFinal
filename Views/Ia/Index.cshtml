@@ -1,0 +1,127 @@
+@model IaViewModel
+@{
+    ViewData["Title"] = "Inteligencia Artificial";
+}
+
+<div class="page-header mb-4">
+    <h2 class="page-title"><i class="bi bi-robot me-2"></i>Inteligencia Artificial</h2>
+    <p class="text-muted mb-0">Análisis automático basado en los datos de monitoreo</p>
+</div>
+
+<!-- KPIs IA -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md">
+        <div class="kpi-card kpi-danger">
+            <div class="kpi-icon"><i class="bi bi-bell"></i></div>
+            <div class="kpi-value">@Model.TotalAlertas</div>
+            <div class="kpi-label">Total Alertas</div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="kpi-card kpi-danger">
+            <div class="kpi-icon"><i class="bi bi-cpu"></i></div>
+            <div class="kpi-value">@Model.DispositivosCpuCritico</div>
+            <div class="kpi-label">CPU Crítico (&gt;90%)</div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="kpi-card kpi-warning">
+            <div class="kpi-icon"><i class="bi bi-memory"></i></div>
+            <div class="kpi-value">@Model.DispositivosRamCritico</div>
+            <div class="kpi-label">RAM Crítica (&gt;90%)</div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="kpi-card kpi-warning">
+            <div class="kpi-icon"><i class="bi bi-speedometer"></i></div>
+            <div class="kpi-value">@Model.DispositivosLatenciaCritica</div>
+            <div class="kpi-label">Latencia Alta (&gt;50ms)</div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="kpi-card kpi-danger">
+            <div class="kpi-icon"><i class="bi bi-x-circle"></i></div>
+            <div class="kpi-value">@Model.DispositivosEnFalla</div>
+            <div class="kpi-label">En Falla</div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="kpi-card kpi-danger">
+            <div class="kpi-icon"><i class="bi bi-exclamation-octagon"></i></div>
+            <div class="kpi-value">@Model.DispositivosRiesgoAlto</div>
+            <div class="kpi-label">Riesgo IA Alto</div>
+        </div>
+    </div>
+</div>
+
+<!-- Recomendaciones generales -->
+<h5 class="fw-semibold mb-3"><i class="bi bi-lightbulb me-2 text-warning"></i>Recomendaciones Automáticas</h5>
+<div class="row g-3 mb-4">
+    @foreach (var rec in Model.Recomendaciones)
+    {
+        <div class="col-md-6">
+            <div class="card border-@rec.ColorClase border-start border-4 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex align-items-center gap-3 mb-2">
+                        <div class="rounded-circle bg-@rec.ColorClase bg-opacity-10 p-2 text-@rec.ColorClase fs-4">
+                            <i class="bi @rec.Icono"></i>
+                        </div>
+                        <div>
+                            <div class="fw-semibold">@rec.Categoria</div>
+                            @if (rec.CantidadAfectados > 0)
+                            {
+                                <span class="badge bg-@rec.ColorClase">@rec.CantidadAfectados afectado(s)</span>
+                            }
+                        </div>
+                    </div>
+                    <p class="mb-0 text-muted small">@rec.Descripcion</p>
+                </div>
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Tabla de alertas -->
+@if (Model.Alertas.Any())
+{
+    <h5 class="fw-semibold mb-3"><i class="bi bi-exclamation-triangle me-2 text-danger"></i>Alertas Detectadas</h5>
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0 small">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Dispositivo</th>
+                            <th>Tipo</th>
+                            <th>IP</th>
+                            <th>Tipo de Alerta</th>
+                            <th>Valor</th>
+                            <th>Severidad</th>
+                            <th>Recomendación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var a in Model.Alertas)
+                        {
+                            <tr>
+                                <td class="fw-semibold">@a.NombreDispositivo</td>
+                                <td>@a.Tipo</td>
+                                <td class="font-monospace">@a.Ip</td>
+                                <td><span class="badge bg-@a.Severidad">@a.TipoAlerta</span></td>
+                                <td class="fw-bold text-@a.Severidad">@a.Valor</td>
+                                <td><span class="badge bg-@a.Severidad">@(a.Severidad == "danger" ? "Crítico" : "Advertencia")</span></td>
+                                <td class="text-muted" style="max-width:250px">@a.Recomendacion</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+}
+else
+{
+    <div class="alert alert-success">
+        <i class="bi bi-check-circle me-2"></i>No se detectaron alertas. Todos los dispositivos operan dentro de parámetros normales.
+    </div>
+}

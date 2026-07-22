@@ -1,0 +1,119 @@
+@{
+    ViewData["Title"] = "Chatbot IA";
+}
+
+<div class="page-header mb-4">
+    <h2 class="page-title"><i class="bi bi-chat-dots me-2"></i>Chatbot de Redes</h2>
+    <p class="text-muted mb-0">Consulta información de la red en lenguaje natural</p>
+</div>
+
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0 chatbot-card">
+            <div class="card-header chatbot-header">
+                <div class="d-flex align-items-center gap-2">
+                    <div class="chatbot-avatar"><i class="bi bi-robot"></i></div>
+                    <div>
+                        <div class="fw-semibold">Asistente NetMonitor</div>
+                        <div class="small text-success"><i class="bi bi-circle-fill me-1" style="font-size:.5rem"></i>En línea – Lee datos en tiempo real</div>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <div id="chatMessages" class="chat-messages">
+                    <div class="chat-msg assistant">
+                        <div class="chat-bubble">
+                            👋 ¡Hola! Soy el asistente de monitoreo de redes. Puedo responder preguntas sobre los dispositivos consultando directamente la base de datos.<br><br>
+                            Prueba preguntar:<br>
+                            • ¿Cuántos equipos activos existen?<br>
+                            • ¿Qué equipos están en falla?<br>
+                            • ¿Cuál tiene mayor CPU?<br>
+                            • ¿Cuántos routers existen?<br>
+                            • Escribe <strong>ayuda</strong> para más opciones.
+                        </div>
+                        <div class="chat-time">Sistema</div>
+                    </div>
+                </div>
+                <div class="chat-input-area">
+                    <div class="d-flex gap-2">
+                        <input type="text" id="inputMensaje" class="form-control" placeholder="Escribe tu consulta..." autocomplete="off" />
+                        <button id="btnEnviar" class="btn btn-primary px-3">
+                            <i class="bi bi-send"></i>
+                        </button>
+                    </div>
+                    <div class="mt-2 d-flex flex-wrap gap-1">
+                        <button class="btn btn-outline-secondary btn-sm chip-btn">¿Cuántos equipos activos?</button>
+                        <button class="btn btn-outline-secondary btn-sm chip-btn">¿Qué equipos están en falla?</button>
+                        <button class="btn btn-outline-secondary btn-sm chip-btn">¿Cuál tiene mayor CPU?</button>
+                        <button class="btn btn-outline-secondary btn-sm chip-btn">¿Cuántos routers existen?</button>
+                        <button class="btn btn-outline-secondary btn-sm chip-btn">¿Cuál tiene mayor latencia?</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script>
+const antiForgery = '@Html.AntiForgeryToken()';
+const token = $('input[name="__RequestVerificationToken"]').val() ||
+              document.querySelector('meta[name="csrf-token"]')?.content || '';
+
+function agregarMensaje(contenido, rol) {
+    const hora = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+    const html = `<div class="chat-msg ${rol}">
+        <div class="chat-bubble">${contenido}</div>
+        <div class="chat-time">${hora}</div>
+    </div>`;
+    $('#chatMessages').append(html);
+    $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
+}
+
+function mostrarTyping() {
+    const html = `<div class="chat-msg assistant" id="typingMsg">
+        <div class="chat-bubble typing-indicator"><span></span><span></span><span></span></div>
+    </div>`;
+    $('#chatMessages').append(html);
+    $('#chatMessages').scrollTop($('#chatMessages')[0].scrollHeight);
+}
+
+function enviarMensaje() {
+    const msg = $('#inputMensaje').val().trim();
+    if (!msg) return;
+
+    agregarMensaje(msg, 'user');
+    $('#inputMensaje').val('');
+    $('#btnEnviar').prop('disabled', true);
+    mostrarTyping();
+
+    $.ajax({
+        url: '/Chatbot/Consultar',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ pregunta: msg }),
+        headers: { 'RequestVerificationToken': $('input[name="__RequestVerificationToken"]', document).val() },
+        success: function(data) {
+            $('#typingMsg').remove();
+            agregarMensaje(data.respuesta, 'assistant');
+        },
+        error: function() {
+            $('#typingMsg').remove();
+            agregarMensaje('Lo siento, ocurrió un error al procesar tu consulta.', 'assistant');
+        },
+        complete: function() {
+            $('#btnEnviar').prop('disabled', false);
+            $('#inputMensaje').focus();
+        }
+    });
+}
+
+$('#btnEnviar').on('click', enviarMensaje);
+$('#inputMensaje').on('keypress', function(e) { if (e.key === 'Enter') enviarMensaje(); });
+$('.chip-btn').on('click', function() {
+    $('#inputMensaje').val($(this).text());
+    enviarMensaje();
+});
+</script>
+@Html.AntiForgeryToken()
+}

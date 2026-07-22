@@ -1,0 +1,35 @@
+@model SistemaMonitoreoRedes.Models.Alerta
+@{
+    var severidadClass = Model.Severidad switch
+    {
+        "Crítica" => "danger",
+        "Alta"    => "warning",
+        "Media"   => "info",
+        "Baja"    => "secondary",
+        _         => "secondary"
+    };
+    var estadoClass = Model.Estado == "Atendida" ? "success" : "warning text-dark";
+}
+<tr id="alerta-@Model.Id" class="@(Model.Estado == "Pendiente" && Model.Severidad == "Crítica" ? "table-danger bg-opacity-10" : "")">
+    <td class="text-muted">@Model.Id</td>
+    <td class="text-muted small">@Model.FechaHora.ToString("dd/MM/yy HH:mm")</td>
+    <td class="fw-semibold">@(Model.Dispositivo ?? "—")</td>
+    <td class="font-monospace small">@(Model.Ip ?? "—")</td>
+    <td><span class="badge bg-light text-dark border">@Model.TipoAlerta</span></td>
+    <td class="small" style="max-width:220px">@Model.Descripcion</td>
+    <td><span class="badge bg-@severidadClass">@Model.Severidad</span></td>
+    <td><span class="badge bg-@estadoClass">@Model.Estado</span></td>
+    <td class="text-muted small">@(Model.FechaAtendida?.ToString("dd/MM/yy HH:mm") ?? "—")</td>
+    <td class="text-center">
+        @if (Model.Estado == "Pendiente")
+        {
+            <button class="btn btn-success btn-sm btn-atender" data-id="@Model.Id" title="Marcar atendida">
+                <i class="bi bi-check-lg"></i>
+            </button>
+        }
+        else
+        {
+            <span class="text-muted small">@(Model.UsuarioAtendio ?? "—")</span>
+        }
+    </td>
+</tr>

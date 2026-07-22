@@ -1,0 +1,288 @@
+@model SistemaMonitoreoRedes.ViewModels.DashboardViewModel
+@{
+    ViewData["Title"] = "Dashboard";
+}
+
+<div class="page-header mb-4">
+    <h2 class="page-title"><i class="bi bi-speedometer2 me-2"></i>Dashboard</h2>
+    <p class="text-muted mb-0">Resumen general del monitoreo de red</p>
+</div>
+
+<!-- KPI Cards Row 1 – dispositivos (originales) -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <div class="kpi-card kpi-primary">
+            <div class="kpi-icon"><i class="bi bi-server"></i></div>
+            <div class="kpi-value">@Model.TotalRegistros</div>
+            <div class="kpi-label">Total Registros</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="kpi-card kpi-success">
+            <div class="kpi-icon"><i class="bi bi-check-circle"></i></div>
+            <div class="kpi-value">@Model.EquiposActivos</div>
+            <div class="kpi-label">Equipos Activos</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="kpi-card kpi-warning">
+            <div class="kpi-icon"><i class="bi bi-exclamation-triangle"></i></div>
+            <div class="kpi-value">@Model.EquiposAdvertencia</div>
+            <div class="kpi-label">En Advertencia</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="kpi-card kpi-danger">
+            <div class="kpi-icon"><i class="bi bi-x-circle"></i></div>
+            <div class="kpi-value">@Model.EquiposFalla</div>
+            <div class="kpi-label">En Falla</div>
+        </div>
+    </div>
+</div>
+
+<!-- KPI Cards Row 2 – alertas (nuevas) -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4">
+        <div class="kpi-card kpi-primary">
+            <div class="kpi-icon"><i class="bi bi-bell"></i></div>
+            <div class="kpi-value" id="kpiTotalAlertas">@Model.TotalAlertas</div>
+            <div class="kpi-label">Total Alertas</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4">
+        <div class="kpi-card kpi-warning">
+            <div class="kpi-icon"><i class="bi bi-hourglass-split"></i></div>
+            <div class="kpi-value" id="kpiAlertasPendientes">@Model.AlertasPendientes</div>
+            <div class="kpi-label">Alertas Pendientes</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4">
+        <div class="kpi-card kpi-danger">
+            <div class="kpi-icon"><i class="bi bi-exclamation-octagon"></i></div>
+            <div class="kpi-value" id="kpiAlertasCriticas">@Model.AlertasCriticas</div>
+            <div class="kpi-label">Alertas Críticas</div>
+        </div>
+    </div>
+</div>
+
+<!-- KPI métricas originales -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md">
+        <div class="metric-card">
+            <div class="metric-label"><i class="bi bi-cpu me-1"></i>CPU Prom.</div>
+            <div class="metric-value">@Model.CpuPromedio<span class="metric-unit">%</span></div>
+            <div class="progress mt-2" style="height:4px">
+                <div class="progress-bar bg-info" style="width:@Model.CpuPromedio%"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="metric-card">
+            <div class="metric-label"><i class="bi bi-memory me-1"></i>RAM Prom.</div>
+            <div class="metric-value">@Model.RamPromedio<span class="metric-unit">%</span></div>
+            <div class="progress mt-2" style="height:4px">
+                <div class="progress-bar" style="width:@Model.RamPromedio%;background:#7c3aed"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="metric-card">
+            <div class="metric-label"><i class="bi bi-download me-1"></i>Descarga Prom.</div>
+            <div class="metric-value">@Model.DescargaPromedio<span class="metric-unit">Mbps</span></div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="metric-card">
+            <div class="metric-label"><i class="bi bi-upload me-1"></i>Subida Prom.</div>
+            <div class="metric-value">@Model.SubidaPromedio<span class="metric-unit">Mbps</span></div>
+        </div>
+    </div>
+    <div class="col-6 col-md">
+        <div class="metric-card">
+            <div class="metric-label"><i class="bi bi-speedometer me-1"></i>Latencia Prom.</div>
+            <div class="metric-value">@Model.LatenciaPromedio<span class="metric-unit">ms</span></div>
+        </div>
+    </div>
+</div>
+
+<!-- Fila: Gráficos + Últimas Alertas -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="chart-card">
+            <div class="chart-title">Distribución por Estado</div>
+            <canvas id="chartEstado"></canvas>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="chart-card">
+            <div class="chart-title">Distribución por Tipo</div>
+            <canvas id="chartTipo"></canvas>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="chart-card h-100">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="chart-title mb-0">Últimas Alertas</div>
+                <a asp-controller="Alertas" asp-action="Index" class="btn btn-outline-secondary btn-sm">Ver todas</a>
+            </div>
+            @if (!Model.UltimasAlertas.Any())
+            {
+                <p class="text-muted small text-center mt-3"><i class="bi bi-check-circle text-success me-1"></i>Sin alertas recientes</p>
+            }
+            else
+            {
+                <div id="listaUltimasAlertas">
+                    @foreach (var a in Model.UltimasAlertas)
+                    {
+                        var cls = a.Severidad switch { "Crítica" => "danger", "Alta" => "warning", "Media" => "info", _ => "secondary" };
+                        <div class="d-flex align-items-start gap-2 mb-2 p-2 rounded bg-light">
+                            <span class="badge bg-@cls mt-1">@a.Severidad</span>
+                            <div class="flex-grow-1">
+                                <div class="fw-semibold small">@a.TipoAlerta</div>
+                                <div class="text-muted" style="font-size:.75rem">@(a.Dispositivo ?? a.Ip) · @a.FechaHora.ToString("HH:mm")</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<!-- Gráficos Row 2 (originales) -->
+<div class="row g-3 mb-4">
+    <div class="col-md-4">
+        <div class="chart-card">
+            <div class="chart-title">Distribución por Ubicación</div>
+            <canvas id="chartUbicacion"></canvas>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="chart-card">
+            <div class="chart-title">CPU y RAM – Últimos registros</div>
+            <canvas id="chartCpuRam"></canvas>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="chart-card">
+            <div class="chart-title">Descarga y Subida (Mbps)</div>
+            <canvas id="chartBandwidth"></canvas>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+const estadoLabels = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.EstadoDistribucion.Keys));
+const estadoData   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.EstadoDistribucion.Values));
+const tipoLabels   = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TipoDistribucion.Keys));
+const tipoData     = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.TipoDistribucion.Values));
+const ubLabels     = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.UbicacionDistribucion.Keys));
+const ubData       = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.UbicacionDistribucion.Values));
+const fechas       = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.FechasRecientes));
+const cpuData      = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.CpuReciente));
+const ramData      = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.RamReciente));
+const descData     = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.DescargaReciente));
+const subData      = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model.SubidaReciente));
+const palette = ['#3b82f6','#10b981','#f59e0b','#ef4444','#8b5cf6','#06b6d4','#f97316','#ec4899'];
+
+new Chart(document.getElementById('chartEstado'), {
+    type: 'doughnut',
+    data: { labels: estadoLabels, datasets: [{ data: estadoData, backgroundColor: palette, borderWidth: 2 }] },
+    options: { plugins: { legend: { position: 'bottom' } }, cutout: '65%' }
+});
+new Chart(document.getElementById('chartTipo'), {
+    type: 'pie',
+    data: { labels: tipoLabels, datasets: [{ data: tipoData, backgroundColor: palette, borderWidth: 2 }] },
+    options: { plugins: { legend: { position: 'bottom' } } }
+});
+new Chart(document.getElementById('chartUbicacion'), {
+    type: 'bar',
+    data: { labels: ubLabels, datasets: [{ label: 'Dispositivos', data: ubData, backgroundColor: '#3b82f6', borderRadius: 6 }] },
+    options: { plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
+});
+new Chart(document.getElementById('chartCpuRam'), {
+    type: 'line',
+    data: {
+        labels: fechas,
+        datasets: [
+            { label: 'CPU %', data: cpuData, borderColor: '#3b82f6', backgroundColor: 'rgba(59,130,246,.1)', tension: 0.4, fill: true },
+            { label: 'RAM %', data: ramData, borderColor: '#8b5cf6', backgroundColor: 'rgba(139,92,246,.1)', tension: 0.4, fill: true }
+        ]
+    },
+    options: { scales: { y: { beginAtZero: true, max: 100 } } }
+});
+new Chart(document.getElementById('chartBandwidth'), {
+    type: 'line',
+    data: {
+        labels: fechas,
+        datasets: [
+            { label: 'Descarga (Mbps)', data: descData, borderColor: '#10b981', backgroundColor: 'rgba(16,185,129,.1)', tension: 0.4, fill: true },
+            { label: 'Subida (Mbps)',   data: subData,  borderColor: '#f59e0b', backgroundColor: 'rgba(245,158,11,.1)',  tension: 0.4, fill: true }
+        ]
+    },
+    options: { scales: { y: { beginAtZero: true } } }
+});
+
+// ── SignalR: actualizar KPIs de alertas en tiempo real ────────────
+const connection = new signalR.HubConnectionBuilder()
+    .withUrl('/alertasHub')
+    .withAutomaticReconnect()
+    .build();
+
+connection.on('ActualizarContadorAlertas', function(n) {
+    document.getElementById('kpiAlertasPendientes').textContent = n;
+    actualizarBadgeCampana(n);
+});
+
+connection.on('NuevaAlerta', function(alerta) {
+    // Incrementar KPI total
+    const el = document.getElementById('kpiTotalAlertas');
+    if (el) el.textContent = parseInt(el.textContent || '0') + 1;
+
+    // Añadir al listado de últimas alertas
+    const lista = document.getElementById('listaUltimasAlertas');
+    if (lista) {
+        const colorMap = { 'Crítica': 'danger', 'Alta': 'warning', 'Media': 'info', 'Baja': 'secondary' };
+        const c = colorMap[alerta.severidad] || 'secondary';
+        const hora = new Date().toLocaleTimeString('es-PE', { hour: '2-digit', minute: '2-digit' });
+        lista.insertAdjacentHTML('afterbegin', `
+            <div class="d-flex align-items-start gap-2 mb-2 p-2 rounded bg-light border-start border-${c} border-3">
+                <span class="badge bg-${c} mt-1">${alerta.severidad}</span>
+                <div class="flex-grow-1">
+                    <div class="fw-semibold small">${alerta.tipoAlerta}</div>
+                    <div class="text-muted" style="font-size:.75rem">${alerta.dispositivo || alerta.ip || '—'} · ${hora}</div>
+                </div>
+            </div>`);
+    }
+
+    // Toast
+    if (alerta.severidad === 'Crítica') mostrarToastAlertaCritica(alerta);
+});
+
+connection.start().catch(e => console.warn('SignalR Dashboard:', e));
+
+function actualizarBadgeCampana(n) {
+    const badge = document.getElementById('bellBadge');
+    if (!badge) return;
+    badge.textContent = n > 99 ? '99+' : n;
+    badge.style.display = n > 0 ? 'inline-flex' : 'none';
+}
+
+function mostrarToastAlertaCritica(alerta) {
+    const t = document.createElement('div');
+    t.className = 'toast align-items-center text-bg-danger border-0 show';
+    t.style.minWidth = '300px';
+    t.innerHTML = `<div class="d-flex"><div class="toast-body">
+        <strong><i class="bi bi-exclamation-octagon-fill me-1"></i>¡Alerta Crítica!</strong><br>
+        <small>${alerta.tipoAlerta} – ${alerta.dispositivo || alerta.ip}</small>
+    </div><button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>`;
+
+    let c = document.getElementById('toastContainer');
+    if (!c) { c = document.createElement('div'); c.id='toastContainer'; c.className='toast-container position-fixed bottom-0 end-0 p-3'; c.style.zIndex=9999; document.body.appendChild(c); }
+    c.appendChild(t);
+    setTimeout(() => t.remove(), 7000);
+}
+</script>
+}

@@ -1,0 +1,78 @@
+@model Red
+@{
+    ViewData["Title"] = "Detalle de Registro";
+}
+
+<div class="page-header mb-4 d-flex justify-content-between align-items-center">
+    <h2 class="page-title"><i class="bi bi-eye me-2"></i>Detalle – @Model.NombreDispositivo</h2>
+    <div class="d-flex gap-2">
+        <a asp-action="Edit" asp-route-id="@Model.IdMonitoreo" class="btn btn-warning btn-sm"><i class="bi bi-pencil me-1"></i>Editar</a>
+        <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-arrow-left me-1"></i>Volver</a>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header fw-semibold bg-primary text-white"><i class="bi bi-info-circle me-2"></i>Información General</div>
+            <div class="card-body">
+                <dl class="row mb-0">
+                    <dt class="col-5">ID</dt><dd class="col-7">@Model.IdMonitoreo</dd>
+                    <dt class="col-5">Fecha/Hora</dt><dd class="col-7">@Model.FechaHora?.ToString("dd/MM/yyyy HH:mm:ss")</dd>
+                    <dt class="col-5">ID Dispositivo</dt><dd class="col-7">@Model.IdDispositivo</dd>
+                    <dt class="col-5">Nombre</dt><dd class="col-7 fw-semibold">@Model.NombreDispositivo</dd>
+                    <dt class="col-5">Tipo</dt><dd class="col-7"><span class="badge bg-info">@Model.Tipo</span></dd>
+                    <dt class="col-5">Marca</dt><dd class="col-7">@Model.Marca</dd>
+                    <dt class="col-5">Modelo</dt><dd class="col-7">@Model.Modelo</dd>
+                    <dt class="col-5">IP</dt><dd class="col-7 font-monospace">@Model.Ip</dd>
+                    <dt class="col-5">Ubicación</dt><dd class="col-7">@Model.Ubicacion</dd>
+                    <dt class="col-5">Estado</dt>
+                    <dd class="col-7">
+                        @{ var cls = Model.Estado switch { "Activo" => "success", "Advertencia" => "warning", "Falla" => "danger", _ => "secondary" }; }
+                        <span class="badge bg-@cls">@Model.Estado</span>
+                    </dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card shadow-sm border-0 h-100">
+            <div class="card-header fw-semibold bg-info text-white"><i class="bi bi-bar-chart me-2"></i>Métricas de Rendimiento</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1"><span>CPU</span><strong class="@(Model.CpuPorcentaje > 90 ? "text-danger" : "")">@Model.CpuPorcentaje%</strong></div>
+                    <div class="progress" style="height:8px"><div class="progress-bar @(Model.CpuPorcentaje > 90 ? "bg-danger" : "bg-primary")" style="width:@Model.CpuPorcentaje%"></div></div>
+                </div>
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between mb-1"><span>RAM</span><strong class="@(Model.RamPorcentaje > 90 ? "text-danger" : "")">@Model.RamPorcentaje%</strong></div>
+                    <div class="progress" style="height:8px"><div class="progress-bar @(Model.RamPorcentaje > 90 ? "bg-danger" : "bg-purple")" style="width:@Model.RamPorcentaje%;background:#7c3aed"></div></div>
+                </div>
+                <dl class="row mb-0 mt-3">
+                    <dt class="col-6">Descarga</dt><dd class="col-6">@Model.DescargaMbps Mbps</dd>
+                    <dt class="col-6">Subida</dt><dd class="col-6">@Model.SubidaMbps Mbps</dd>
+                    <dt class="col-6">Latencia</dt><dd class="col-6 @(Model.LatenciaMs > 50 ? "text-danger fw-bold" : "")">@Model.LatenciaMs ms</dd>
+                    <dt class="col-6">Alerta</dt><dd class="col-6">@(Model.Alerta ?? "—")</dd>
+                    <dt class="col-6">Incidencia</dt><dd class="col-6">@(Model.Incidencia ?? "—")</dd>
+                </dl>
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <div class="card shadow-sm border-0">
+            <div class="card-header fw-semibold bg-warning"><i class="bi bi-robot me-2"></i>Análisis de Inteligencia Artificial</div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <p class="mb-1 text-muted small">Riesgo IA</p>
+                        @{ var rc = Model.RiesgoIa switch { "Alto" => "danger", "Medio" => "warning", "Bajo" => "success", _ => "secondary" }; }
+                        <span class="badge bg-@rc fs-6">@(Model.RiesgoIa ?? "No definido")</span>
+                    </div>
+                    <div class="col-md-9">
+                        <p class="mb-1 text-muted small">Recomendación IA</p>
+                        <p class="mb-0">@(Model.RecomendacionIa ?? "Sin recomendación registrada.")</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

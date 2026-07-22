@@ -1,0 +1,369 @@
+@model SistemaMonitoreoRedes.ViewModels.AlertasIndexViewModel
+@{
+    ViewData["Title"] = "Centro de Alertas";
+}
+
+<div class="page-header mb-4 d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <div>
+        <h2 class="page-title"><i class="bi bi-bell me-2"></i>Centro de Alertas</h2>
+        <p class="text-muted mb-0">Alertas generadas automáticamente desde los datos de monitoreo</p>
+    </div>
+    <div class="d-flex gap-2 flex-wrap">
+        <button id="btnAnalizar" class="btn btn-primary">
+            <i class="bi bi-search me-1"></i>Analizar Datos Ahora
+        </button>
+        <button id="btnAtenderTodas" class="btn btn-outline-success">
+            <i class="bi bi-check-all me-1"></i>Atender Todas
+        </button>
+    </div>
+</div>
+
+<!-- Resultado del análisis -->
+<div id="resultadoAnalisis" class="d-none mb-3"></div>
+
+<!-- KPI Cards -->
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4">
+        <div class="kpi-card kpi-primary">
+            <div class="kpi-icon"><i class="bi bi-bell"></i></div>
+            <div class="kpi-value" id="kpiTotal">@Model.TotalAlertas</div>
+            <div class="kpi-label">Total Alertas</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4">
+        <div class="kpi-card kpi-warning">
+            <div class="kpi-icon"><i class="bi bi-hourglass-split"></i></div>
+            <div class="kpi-value" id="kpiPendientes">@Model.TotalPendientes</div>
+            <div class="kpi-label">Pendientes</div>
+        </div>
+    </div>
+    <div class="col-6 col-md-4">
+        <div class="kpi-card kpi-danger">
+            <div class="kpi-icon"><i class="bi bi-exclamation-octagon"></i></div>
+            <div class="kpi-value" id="kpiCriticas">@Model.TotalCriticas</div>
+            <div class="kpi-label">Críticas Activas</div>
+        </div>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-body py-2">
+        <form method="get" class="row g-2 align-items-end">
+            <div class="col-md-3">
+                <select name="filtroEstado" class="form-select form-select-sm">
+                    <option value="">— Estado —</option>
+                    @if (Model.FiltroEstado == "Pendiente")
+                    {
+                        <option value="Pendiente" selected="selected">Pendiente</option>
+                        <option value="Atendida">Atendida</option>
+                    }
+                    else if (Model.FiltroEstado == "Atendida")
+                    {
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Atendida" selected="selected">Atendida</option>
+                    }
+                    else
+                    {
+                        <option value="Pendiente">Pendiente</option>
+                        <option value="Atendida">Atendida</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="filtroSeveridad" class="form-select form-select-sm">
+                    <option value="">— Severidad —</option>
+                    @if (Model.FiltroSeveridad == "Crítica")
+                    {
+                        <option value="Crítica" selected="selected">Crítica</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Media">Media</option>
+                        <option value="Baja">Baja</option>
+                    }
+                    else if (Model.FiltroSeveridad == "Alta")
+                    {
+                        <option value="Crítica">Crítica</option>
+                        <option value="Alta" selected="selected">Alta</option>
+                        <option value="Media">Media</option>
+                        <option value="Baja">Baja</option>
+                    }
+                    else if (Model.FiltroSeveridad == "Media")
+                    {
+                        <option value="Crítica">Crítica</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Media" selected="selected">Media</option>
+                        <option value="Baja">Baja</option>
+                    }
+                    else if (Model.FiltroSeveridad == "Baja")
+                    {
+                        <option value="Crítica">Crítica</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Media">Media</option>
+                        <option value="Baja" selected="selected">Baja</option>
+                    }
+                    else
+                    {
+                        <option value="Crítica">Crítica</option>
+                        <option value="Alta">Alta</option>
+                        <option value="Media">Media</option>
+                        <option value="Baja">Baja</option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="fechaInicio" class="form-control form-control-sm"
+                       value="@(Model.FechaInicio.HasValue ? Model.FechaInicio.Value.ToString("yyyy-MM-dd") : "")" />
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="fechaFin" class="form-control form-control-sm"
+                       value="@(Model.FechaFin.HasValue ? Model.FechaFin.Value.ToString("yyyy-MM-dd") : "")" />
+            </div>
+            <div class="col-md-2 d-flex gap-1">
+                <button type="submit" class="btn btn-primary btn-sm flex-grow-1"><i class="bi bi-funnel"></i> Filtrar</button>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="bi bi-x"></i></a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Tabla de alertas -->
+<div class="card shadow-sm border-0">
+    <div class="card-header d-flex justify-content-between align-items-center py-2">
+        <span class="fw-semibold"><i class="bi bi-table me-2"></i>Alertas Registradas</span>
+        <div class="d-flex gap-2 align-items-center">
+            <span id="badgeSignalR" class="badge bg-secondary" style="font-size:.7rem">
+                <i class="bi bi-circle me-1"></i>Conectando…
+            </span>
+            <span class="badge bg-primary" id="badgeConteo">@Model.TotalAlertas registros</span>
+        </div>
+    </div>
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 small" id="tablaAlertas">
+                <thead class="table-dark">
+                    <tr>
+                        <th>#</th>
+                        <th>Fecha/Hora</th>
+                        <th>Dispositivo</th>
+                        <th>IP</th>
+                        <th>Tipo de Alerta</th>
+                        <th>Descripción</th>
+                        <th>Severidad</th>
+                        <th>Estado</th>
+                        <th>Atendida</th>
+                        <th class="text-center">Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="tbodyAlertas">
+                    @if (!Model.Alertas.Any())
+                    {
+                        <tr id="filaVacia">
+                            <td colspan="10" class="text-center py-5">
+                                <i class="bi bi-bell-slash fs-3 text-muted d-block mb-2"></i>
+                                <span class="text-muted">No hay alertas registradas.</span><br />
+                                <small class="text-muted">Presiona <strong>Analizar Datos Ahora</strong> para generar alertas desde los datos de monitoreo.</small>
+                            </td>
+                        </tr>
+                    }
+                    @foreach (var a in Model.Alertas)
+                    {
+                        @await Html.PartialAsync("_AlertaFila", a)
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+<script src="https://cdnjs.cloudflare.com/ajax/libs/microsoft-signalr/8.0.0/signalr.min.js"></script>
+<script>
+const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value || '';
+
+// ── Botón Analizar Datos ──────────────────────────────────────────
+document.getElementById('btnAnalizar').addEventListener('click', async function () {
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Analizando…';
+
+    try {
+        const resp = await fetch('/Alertas/AnalizarDatos', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'RequestVerificationToken': token }
+        });
+        const data = await resp.json();
+
+        const div = document.getElementById('resultadoAnalisis');
+        div.className = data.nuevas > 0
+            ? 'alert alert-warning alert-dismissible fade show'
+            : 'alert alert-success alert-dismissible fade show';
+        div.innerHTML = '<i class="bi bi-' + (data.nuevas > 0 ? 'exclamation-triangle' : 'check-circle') + ' me-2"></i>'
+            + '<strong>' + data.mensaje + '</strong>'
+            + '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+        div.classList.remove('d-none');
+
+        if (data.nuevas > 0) {
+            setTimeout(() => window.location.reload(), 1500);
+        }
+    } catch (e) {
+        alert('Error al analizar: ' + e.message);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-search me-1"></i>Analizar Datos Ahora';
+    }
+});
+
+// ── Botón Atender Todas ───────────────────────────────────────────
+document.getElementById('btnAtenderTodas').addEventListener('click', async function () {
+    const pendientes = document.querySelectorAll('.btn-atender').length;
+    if (pendientes === 0) { alert('No hay alertas pendientes.'); return; }
+    if (!confirm('¿Marcar ' + pendientes + ' alerta(s) pendiente(s) como atendidas?')) return;
+
+    const btn = this;
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Procesando…';
+
+    try {
+        const resp = await fetch('/Alertas/MarcarTodasAtendidas', {
+            method: 'POST',
+            headers: { 'X-Requested-With': 'XMLHttpRequest', 'RequestVerificationToken': token }
+        });
+        const data = await resp.json();
+        if (data.ok) setTimeout(() => window.location.reload(), 800);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-check-all me-1"></i>Atender Todas';
+    }
+});
+
+// ── Marcar atendida individual via AJAX ───────────────────────────
+document.addEventListener('click', function (e) {
+    const btn = e.target.closest('.btn-atender');
+    if (!btn) return;
+    const id = btn.dataset.id;
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+
+    fetch('/Alertas/MarcarAtendida/' + id, {
+        method: 'POST',
+        headers: { 'X-Requested-With': 'XMLHttpRequest', 'RequestVerificationToken': token }
+    })
+    .then(r => r.json())
+    .then(data => {
+        if (data.ok) {
+            const fila = document.getElementById('alerta-' + id);
+            if (fila) {
+                fila.classList.remove('table-danger', 'table-warning', 'table-info', 'table-secondary');
+                const estadoCell = fila.querySelector('td:nth-child(8)');
+                if (estadoCell) estadoCell.innerHTML = '<span class="badge bg-success">Atendida</span>';
+                const fechaCell = fila.querySelector('td:nth-child(9)');
+                if (fechaCell) fechaCell.textContent = new Date().toLocaleString('es-PE');
+                btn.closest('td').innerHTML = '<span class="text-muted small">admin</span>';
+            }
+            const kpi = document.getElementById('kpiPendientes');
+            if (kpi) kpi.textContent = Math.max(0, parseInt(kpi.textContent) - 1);
+        }
+    })
+    .catch(() => { btn.disabled = false; btn.innerHTML = '<i class="bi bi-check-lg"></i>'; });
+});
+
+// ── SignalR – nuevas alertas en tiempo real ───────────────────────
+const connection = new signalR.HubConnectionBuilder()
+    .withUrl('/alertasHub')
+    .withAutomaticReconnect()
+    .build();
+
+connection.on('NuevaAlerta', function (alerta) {
+    document.getElementById('filaVacia')?.remove();
+
+    const sevClass = { 'Crítica': 'danger', 'Alta': 'warning', 'Media': 'info', 'Baja': 'secondary' };
+    const sc = sevClass[alerta.severidad] || 'secondary';
+
+    const tr = document.createElement('tr');
+    tr.id = 'alerta-' + alerta.id;
+    tr.innerHTML =
+        '<td class="text-muted">' + alerta.id + '</td>' +
+        '<td class="text-muted">' + alerta.fechaHora + '</td>' +
+        '<td class="fw-semibold">' + (alerta.dispositivo || '—') + '</td>' +
+        '<td class="font-monospace">' + (alerta.ip || '—') + '</td>' +
+        '<td><span class="badge bg-light text-dark border">' + alerta.tipoAlerta + '</span></td>' +
+        '<td style="max-width:220px">' + (alerta.descripcion || '') + '</td>' +
+        '<td><span class="badge bg-' + sc + '">' + alerta.severidad + '</span></td>' +
+        '<td><span class="badge bg-warning text-dark">Pendiente</span></td>' +
+        '<td class="text-muted">—</td>' +
+        '<td class="text-center"><button class="btn btn-success btn-sm btn-atender" data-id="' + alerta.id + '" title="Marcar atendida"><i class="bi bi-check-lg"></i></button></td>';
+
+    document.getElementById('tbodyAlertas').prepend(tr);
+
+    const kpiT = document.getElementById('kpiTotal');
+    const kpiP = document.getElementById('kpiPendientes');
+    if (kpiT) kpiT.textContent = parseInt(kpiT.textContent || 0) + 1;
+    if (kpiP) kpiP.textContent = parseInt(kpiP.textContent || 0) + 1;
+    if (alerta.severidad === 'Crítica') {
+        const kpiC = document.getElementById('kpiCriticas');
+        if (kpiC) kpiC.textContent = parseInt(kpiC.textContent || 0) + 1;
+    }
+    document.getElementById('badgeConteo').textContent =
+        parseInt(document.getElementById('kpiTotal').textContent) + ' registros';
+
+    mostrarToast(alerta);
+    if (alerta.severidad === 'Crítica') reproducirBeep();
+});
+
+connection.on('ActualizarContadorAlertas', function (n) {
+    const kpi = document.getElementById('kpiPendientes');
+    if (kpi) kpi.textContent = n;
+});
+
+connection.start()
+    .then(() => {
+        document.getElementById('badgeSignalR').className = 'badge bg-success';
+        document.getElementById('badgeSignalR').innerHTML = '<i class="bi bi-circle-fill me-1" style="font-size:.5rem"></i>Tiempo Real';
+    })
+    .catch(() => {
+        document.getElementById('badgeSignalR').className = 'badge bg-danger';
+        document.getElementById('badgeSignalR').innerHTML = '<i class="bi bi-circle me-1"></i>Sin conexión RT';
+    });
+
+function mostrarToast(alerta) {
+    const colorMap = { 'Crítica': 'danger', 'Alta': 'warning', 'Media': 'info', 'Baja': 'secondary' };
+    const color = colorMap[alerta.severidad] || 'secondary';
+    const t = document.createElement('div');
+    t.className = 'toast align-items-center text-bg-' + color + ' border-0';
+    t.innerHTML = '<div class="d-flex">'
+        + '<div class="toast-body"><strong><i class="bi bi-bell-fill me-1"></i>' + alerta.tipoAlerta + '</strong><br>'
+        + '<small>' + (alerta.dispositivo || '') + (alerta.ip ? ' (' + alerta.ip + ')' : '') + '</small></div>'
+        + '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button></div>';
+    let c = document.getElementById('toastContainer');
+    if (!c) {
+        c = document.createElement('div');
+        c.id = 'toastContainer';
+        c.className = 'toast-container position-fixed bottom-0 end-0 p-3';
+        c.style.zIndex = 9999;
+        document.body.appendChild(c);
+    }
+    c.appendChild(t);
+    bootstrap.Toast.getOrCreateInstance(t, { delay: 5000 }).show();
+    t.addEventListener('hidden.bs.toast', () => t.remove());
+}
+
+function reproducirBeep() {
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.type = 'square';
+        osc.frequency.setValueAtTime(880, ctx.currentTime);
+        osc.frequency.setValueAtTime(440, ctx.currentTime + 0.1);
+        osc.frequency.setValueAtTime(880, ctx.currentTime + 0.2);
+        gain.gain.setValueAtTime(0.25, ctx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.4);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 0.4);
+    } catch(e) {}
+}
+</script>
+@Html.AntiForgeryToken()
+}

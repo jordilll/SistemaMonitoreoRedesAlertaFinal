@@ -1,0 +1,155 @@
+@model ReporteFiltroViewModel
+@{
+    ViewData["Title"] = "Reportes";
+}
+
+<div class="page-header mb-4">
+    <h2 class="page-title"><i class="bi bi-file-earmark-bar-graph me-2"></i>Reportes</h2>
+    <p class="text-muted mb-0">Exporta y filtra los datos de monitoreo</p>
+</div>
+
+<!-- Filtros -->
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header fw-semibold"><i class="bi bi-funnel me-2"></i>Filtros</div>
+    <div class="card-body">
+        <form method="get" id="formFiltros" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Fecha Inicio</label>
+                <input type="date" name="fechaInicio" value="@Model.FechaInicio?.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small fw-semibold">Fecha Fin</label>
+                <input type="date" name="fechaFin" value="@Model.FechaFin?.ToString("yyyy-MM-dd")" class="form-control" />
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold">Estado</label>
+                <select name="estado" class="form-select">
+                    <option value="">— Todos —</option>
+                    @foreach (var e in Model.Estados)
+                    { <option value="@e" selected="@(Model.Estado == e)">@e</option> }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold">Tipo</label>
+                <select name="tipo" class="form-select">
+                    <option value="">— Todos —</option>
+                    @foreach (var t in Model.Tipos)
+                    { <option value="@t" selected="@(Model.Tipo == t)">@t</option> }
+                </select>
+            </div>
+            <div class="col-md-2">
+                <label class="form-label small fw-semibold">Marca</label>
+                <select name="marca" class="form-select">
+                    <option value="">— Todas —</option>
+                    @foreach (var m in Model.Marcas)
+                    { <option value="@m" selected="@(Model.Marca == m)">@m</option> }
+                </select>
+            </div>
+            <div class="col-12 d-flex gap-2">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-search me-1"></i>Filtrar</button>
+                <a asp-action="Index" class="btn btn-outline-secondary"><i class="bi bi-x me-1"></i>Limpiar</a>
+                <div class="ms-auto d-flex gap-2">
+                    <a asp-action="ExportarExcel"
+                       asp-route-fechaInicio="@Model.FechaInicio?.ToString("yyyy-MM-dd")"
+                       asp-route-fechaFin="@Model.FechaFin?.ToString("yyyy-MM-dd")"
+                       asp-route-estado="@Model.Estado" asp-route-tipo="@Model.Tipo"
+                       asp-route-marca="@Model.Marca" asp-route-ubicacion="@Model.Ubicacion"
+                       class="btn btn-success"><i class="bi bi-file-earmark-excel me-1"></i>Exportar Excel</a>
+                    <a asp-action="ExportarPdf"
+                       asp-route-fechaInicio="@Model.FechaInicio?.ToString("yyyy-MM-dd")"
+                       asp-route-fechaFin="@Model.FechaFin?.ToString("yyyy-MM-dd")"
+                       asp-route-estado="@Model.Estado" asp-route-tipo="@Model.Tipo"
+                       asp-route-marca="@Model.Marca" asp-route-ubicacion="@Model.Ubicacion"
+                       class="btn btn-danger"><i class="bi bi-file-earmark-pdf me-1"></i>Exportar PDF</a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Estadísticas -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="kpi-card kpi-primary">
+            <div class="kpi-icon"><i class="bi bi-list-ul"></i></div>
+            <div class="kpi-value">@Model.TotalResultados</div>
+            <div class="kpi-label">Registros</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card kpi-info">
+            <div class="kpi-icon"><i class="bi bi-cpu"></i></div>
+            <div class="kpi-value">@Model.CpuPromedio<small>%</small></div>
+            <div class="kpi-label">CPU Promedio</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card kpi-purple">
+            <div class="kpi-icon"><i class="bi bi-memory"></i></div>
+            <div class="kpi-value">@Model.RamPromedio<small>%</small></div>
+            <div class="kpi-label">RAM Promedio</div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="kpi-card kpi-warning">
+            <div class="kpi-icon"><i class="bi bi-speedometer"></i></div>
+            <div class="kpi-value">@Model.LatenciaPromedio<small>ms</small></div>
+            <div class="kpi-label">Latencia Promedio</div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabla resultados -->
+<div class="card shadow-sm border-0">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0 small">
+                <thead class="table-dark">
+                    <tr>
+                        <th>Fecha/Hora</th>
+                        <th>Dispositivo</th>
+                        <th>Tipo</th>
+                        <th>IP</th>
+                        <th>Ubicación</th>
+                        <th>Estado</th>
+                        <th>CPU%</th>
+                        <th>RAM%</th>
+                        <th>Latencia</th>
+                        <th>Riesgo IA</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Resultados.Any())
+                    {
+                        <tr><td colspan="10" class="text-center text-muted py-4">Aplica filtros para ver resultados.</td></tr>
+                    }
+                    @foreach (var r in Model.Resultados.Take(100))
+                    {
+                        <tr>
+                            <td class="text-muted">@r.FechaHora?.ToString("dd/MM/yy HH:mm")</td>
+                            <td class="fw-semibold">@r.NombreDispositivo</td>
+                            <td>@r.Tipo</td>
+                            <td class="font-monospace">@r.Ip</td>
+                            <td>@r.Ubicacion</td>
+                            <td>
+                                @{ var cls = r.Estado switch { "Activo" => "success", "Advertencia" => "warning", "Falla" => "danger", _ => "secondary" }; }
+                                <span class="badge bg-@cls">@r.Estado</span>
+                            </td>
+                            <td class="@(r.CpuPorcentaje > 90 ? "text-danger fw-bold" : "")">@r.CpuPorcentaje%</td>
+                            <td class="@(r.RamPorcentaje > 90 ? "text-danger fw-bold" : "")">@r.RamPorcentaje%</td>
+                            <td class="@(r.LatenciaMs > 50 ? "text-danger fw-bold" : "")">@r.LatenciaMs ms</td>
+                            <td>
+                                @{ var rc = r.RiesgoIa switch { "Alto" => "danger", "Medio" => "warning", "Bajo" => "success", _ => "secondary" }; }
+                                @if (r.RiesgoIa != null) { <span class="badge bg-@rc">@r.RiesgoIa</span> }
+                            </td>
+                        </tr>
+                    }
+                    @if (Model.Resultados.Count > 100)
+                    {
+                        <tr><td colspan="10" class="text-center text-muted py-2 small">Mostrando 100 de @Model.TotalResultados registros. Exporta para ver todos.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
